@@ -428,73 +428,81 @@ export class FrontEndStack extends cdk.Stack {
     });
 
 
+    // 🔄 Sustituir TODO el bloque anterior
     const invAnalystWebACL = new wafv2.CfnWebACL(this, "InvestmentAnalystWAcl", {
-      defaultAction: {
-        allow: {}
-      },
-      scope: 'CLOUDFRONT',
+      scope: "CLOUDFRONT",
+      defaultAction: { allow: {} },
       visibilityConfig: {
         cloudWatchMetricsEnabled: true,
-        metricName: 'InvestmentAnalystWAcl',
-        sampledRequestsEnabled: true
+        sampledRequestsEnabled: true,
+        metricName: "InvestmentAnalystWAcl",
       },
+
+      /** ─────────────────────────  RULES  ───────────────────────── **/
       rules: [
+        /* 1️⃣  CommonRuleSet – se desactiva sólo SizeRestrictions_QUERYSTRING  */
         {
-          name: 'AWS-AWSManagedRulesCommonRuleSet',
+          name: "AWS-AWSManagedRulesCommonRuleSet",
           priority: 0,
-          overrideAction: {
-            none: {}
-          },
+          overrideAction: { none: {} },                 // mantén el resto de reglas
           visibilityConfig: {
-            sampledRequestsEnabled: true,
             cloudWatchMetricsEnabled: true,
-            metricName: 'AWS-AWSManagedRulesCommonRuleSet'
+            sampledRequestsEnabled: true,
+            metricName: "AWS-AWSManagedRulesCommonRuleSet",
           },
           statement: {
             managedRuleGroupStatement: {
-              vendorName: 'AWS',
-              name: 'AWSManagedRulesCommonRuleSet'
-            }
-          }
+              vendorName: "AWS",
+              name: "AWSManagedRulesCommonRuleSet",
+              /* 👇  Aquí anulamos la regla que bloquea query-string > 1024 B */
+              ruleActionOverrides: [
+                {
+                  name: "SizeRestrictions_QUERYSTRING",
+                  actionToUse: { count: {} },            // ó  { none: {} } para apagarla
+                },
+              ],
+            },
+          },
         },
+
+        /* 2️⃣  KnownBadInputs – sin cambios */
         {
-          name: 'AWS-AWSManagedRulesKnownBadInputsRuleSet',
+          name: "AWS-AWSManagedRulesKnownBadInputsRuleSet",
           priority: 1,
-          overrideAction: {
-            none: {}
-          },
+          overrideAction: { none: {} },
           visibilityConfig: {
-            sampledRequestsEnabled: true,
             cloudWatchMetricsEnabled: true,
-            metricName: 'AWS-AWSManagedRulesKnownBadInputsRuleSet'
+            sampledRequestsEnabled: true,
+            metricName: "AWS-AWSManagedRulesKnownBadInputsRuleSet",
           },
           statement: {
             managedRuleGroupStatement: {
-              vendorName: 'AWS',
-              name: 'AWSManagedRulesKnownBadInputsRuleSet'
-            }
-          }
+              vendorName: "AWS",
+              name: "AWSManagedRulesKnownBadInputsRuleSet",
+            },
+          },
         },
+
+        /* 3️⃣  IP Reputation – sin cambios */
         {
-          name: 'AWS-AWSManagedRulesAmazonIpReputationList',
+          name: "AWS-AWSManagedRulesAmazonIpReputationList",
           priority: 2,
-          overrideAction: {
-            none: {}
-          },
+          overrideAction: { none: {} },
           visibilityConfig: {
-            sampledRequestsEnabled: true,
             cloudWatchMetricsEnabled: true,
-            metricName: 'AWS-AWSManagedRulesAmazonIpReputationList'
+            sampledRequestsEnabled: true,
+            metricName: "AWS-AWSManagedRulesAmazonIpReputationList",
           },
           statement: {
             managedRuleGroupStatement: {
-              vendorName: 'AWS',
-              name: 'AWSManagedRulesAmazonIpReputationList'
-            }
-          }
-        }
-      ]
+              vendorName: "AWS",
+              name: "AWSManagedRulesAmazonIpReputationList",
+            },
+          },
+        },
+      ],
     });
+
 
     const distribution = new cf.Distribution(this, "Distribution", {
       defaultBehavior: {
