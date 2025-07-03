@@ -44,19 +44,21 @@ export class GenAIInfraStack extends cdk.Stack {
     });
 
     /* 1️⃣  Encryption policy (AWS-owned KMS) – necesaria la primera vez */
-    new oss.CfnSecurityConfig(this, 'OssEncryptionDefault', {
+   /* 1️⃣  Encryption policy (AWS-owned KMS) */
+    new oss.CfnSecurityPolicy(this, 'OssEncryptionDefault', {
       name: 'default-aes',
       type: 'encryption',
-      encryptionPolicy: JSON.stringify({
+      policy: JSON.stringify({
         Rules: [
           {
             ResourceType: 'collection',
-            Resource: [ 'collection/*' ]           // todas las colecciones
+            Resource: ['collection/*']
           }
         ],
-        AWSOwnedKey: true                          // clave KMS administrada por AWS
+        AWSOwnedKey: true
       })
     });
+
 
     /* 2️⃣  Data-access policy con los permisos que solicitaste */
     new oss.CfnAccessPolicy(this, 'OssDataAccessDefault', {
