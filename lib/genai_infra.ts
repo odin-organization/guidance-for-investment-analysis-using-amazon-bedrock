@@ -60,7 +60,6 @@ export class GenAIInfraStack extends cdk.Stack {
     });
 
 
-    /* 2️⃣  Data-access policy con los permisos que solicitaste */
     new oss.CfnAccessPolicy(this, 'OssDataAccessDefault', {
       name: 'default-access',
       type: 'data',
@@ -69,34 +68,23 @@ export class GenAIInfraStack extends cdk.Stack {
           Description: 'Allow all roles in this account to manage & query OSS collections',
           Rules: [
             {
+              /* Colecciones */
               ResourceType: 'collection',
-              Resource: [ 'collection/*' ],
-              Permission: [
-                // Colección
-                'aoss:CreateCollection',
-                'aoss:DeleteCollection',
-                'aoss:DescribeCollection',
-
-                // Ítems e índices
-                'aoss:CreateCollectionItems',
-                'aoss:DeleteCollectionItems',
-                'aoss:UpdateCollectionItems',
-                'aoss:DescribeCollectionItems',
-                'aoss:CreateIndex',
-                'aoss:DeleteIndex',
-                'aoss:UpdateIndex',
-                'aoss:DescribeIndex',
-                'aoss:ReadDocument',
-                'aoss:WriteDocument'
-              ]
-
+              Resource: ['collection/*'],
+              Permission: ['aoss:*']          // o enum de *CollectionItems si quieres limitar
+            },
+            {
+              /* Índices dentro de las colecciones */
+              ResourceType: 'index',
+              Resource: ['index/*/*'],        // sintaxis obligatoria <collection>/<index>
+              Permission: ['aoss:*']          // o lista de ReadDocument, WriteDocument, etc.
             }
           ],
-          /* Puedes afinar el principal: un rol concreto, prefijo, etc. */
-          Principal: [ `arn:aws:iam::${cdk.Aws.ACCOUNT_ID}:role/*` ]
+          Principal: [`arn:aws:iam::${cdk.Aws.ACCOUNT_ID}:role/*`]
         }
       ])
     });
+
     const investmentAnalystVecKB = new genai.bedrock.VectorKnowledgeBase(this,
       'InvestmentAnalystVecKB', {
       embeddingsModel: genai.bedrock.BedrockFoundationModel.TITAN_EMBED_TEXT_V2_1024,
