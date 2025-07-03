@@ -366,13 +366,14 @@ export class FrontEndStack extends cdk.Stack {
       },
     });
 
-    const wsOriginRequestPolicy = new cf.OriginRequestPolicy(this, "webSocketPolicy", {
+    /*const wsOriginRequestPolicy = new cf.OriginRequestPolicy(this, "webSocketPolicy", {
       originRequestPolicyName: "webSocketPolicy",
       comment: "A default WebSocket policy",
       cookieBehavior: cf.OriginRequestCookieBehavior.all(),
       headerBehavior: cf.OriginRequestHeaderBehavior.allowList("Sec-WebSocket-Key", "Sec-WebSocket-Version", "Sec-WebSocket-Protocol", "Sec-WebSocket-Accept"),
       queryStringBehavior: cf.OriginRequestQueryStringBehavior.allowList("idToken"),
-    });
+    });*/
+    const wsOriginRequestPolicy = cf.OriginRequestPolicy.ALL_VIEWER;
 
     const websocketStage = new apigatewayv2.WebSocketStage(this, 'WebsocketStage', {
       webSocketApi: webSocketApiGateway,
