@@ -509,10 +509,6 @@ export class FrontEndStack extends cdk.Stack {
         "wss/*":  {
           origin: new origins.HttpOrigin(
             `${webSocketApiGateway.apiId}.execute-api.${cdk.Aws.REGION}.amazonaws.com`,
-            {
-              // ⬇️  ESTA LÍNEA NUEVA mantiene el stage “/wss”
-              originPath: '/wss',
-            }
           ),
           viewerProtocolPolicy: cf.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
           allowedMethods: cf.AllowedMethods.ALLOW_ALL,
