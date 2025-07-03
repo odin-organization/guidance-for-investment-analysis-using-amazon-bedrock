@@ -505,13 +505,19 @@ export class FrontEndStack extends cdk.Stack {
       defaultRootObject: "index.html",
       minimumProtocolVersion: cf.SecurityPolicyProtocol.TLS_V1_2_2021,
       additionalBehaviors: {
-        "wss/*": {
-          origin: new origins.HttpOrigin(`${webSocketApiGateway.apiId}.execute-api.${cdk.Aws.REGION}.amazonaws.com`),
+        "wss/*":  {
+          origin: new origins.HttpOrigin(
+            `${webSocketApiGateway.apiId}.execute-api.${cdk.Aws.REGION}.amazonaws.com`,
+            {
+              // ⬇️  ESTA LÍNEA NUEVA mantiene el stage “/wss”
+              originPath: '/wss',
+            }
+          ),
           viewerProtocolPolicy: cf.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
           allowedMethods: cf.AllowedMethods.ALLOW_ALL,
           cachePolicy: cf.CachePolicy.CACHING_DISABLED,
           originRequestPolicy: wsOriginRequestPolicy,
-          compress: false
+          compress: false,
         },
         "api/*": {
           origin: new origins.HttpOrigin(`${restApi.restApiId}.execute-api.${cdk.Aws.REGION}.amazonaws.com`),
