@@ -16,31 +16,45 @@ jobs:
       AWS_DEFAULT_REGION: us-east-1
       AWS_REGION: us-east-1
       ALPHA_API_KEY: ${{ secrets.ALPHA_API_KEY }}
+
     steps:
-      - name: Checkout repository
+      - name: 📦 Checkout repository
         uses: actions/checkout@v3
 
-      - name: Set up Node.js (20.x)
+      - name: 🔧 Set up Node.js (20.x)
         uses: actions/setup-node@v3
         with:
           node-version: "20"
 
-      - name: Set up Python (3.10)
+      - name: 🐍 Set up Python (3.10)
         uses: actions/setup-python@v4
         with:
           python-version: "3.10"
 
-      - name: Install AWS CDK CLI
+      - name: 💡 Install AWS CDK CLI
         run: npm install -g aws-cdk
 
-      - name: Create & activate Python virtualenv
-        run: |
-          python -m venv .venv
-          source .venv/bin/activate
-          pip install -r requirements.txt
+      - name: 📂 Install project dependencies
+        run: npm ci
 
-      - name: Bootstrap AWS CDK environment
+      - name: 🧱 Install Python deps (Lambdas)
+        run: |
+          for d in functions/*; do
+            if [ -f "$d/requirements.txt" ]; then
+              echo "📦 Installing Python deps in $d"
+              pip install -r "$d/requirements.txt" -t "$d"
+            fi
+          done
+
+      - name: 🧪 Build frontend
+        run: |
+          cd user-interface
+          npm install
+          npm run build
+          cd ..
+
+      - name: 🚀 Bootstrap AWS CDK environment
         run: cdk bootstrap
 
-      - name: Deploy AWS CDK stacks
+      - name: 🚢 Deploy CDK stacks
         run: cdk deploy --require-approval never -c ALPHA_API_KEY=$ALPHA_API_KEY --all
