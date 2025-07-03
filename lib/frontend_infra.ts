@@ -48,13 +48,14 @@ export class FrontEndStack extends cdk.Stack {
     const ALPHA_VANTAGE_APIKEY = this.node.tryGetContext('ALPHA_API_KEY');
 
     const accessLogsBucket = new s3.Bucket(this, 'FrontEndAccessLogsBucket', {
-      bucketName: 'fe-access-logs-bucket',
+      bucketName: `fe-access-logs-${cdk.Aws.ACCOUNT_ID}-${cdk.Aws.REGION}`,
+      removalPolicy: RemovalPolicy.DESTROY,
+      autoDeleteObjects: true,
       blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
       encryption: s3.BucketEncryption.S3_MANAGED,
       enforceSSL: true,
-      removalPolicy: RemovalPolicy.DESTROY,
-      autoDeleteObjects: true,
     });
+
     
     const websiteBucket = new s3.Bucket(this, "WebsiteBucket", {
       removalPolicy: cdk.RemovalPolicy.DESTROY,
