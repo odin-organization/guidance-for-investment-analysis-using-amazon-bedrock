@@ -31,11 +31,12 @@ jobs:
         with:
           python-version: "3.10"
 
-      - name: 💡 Install AWS CDK CLI
+      - name: 💡 Install AWS CDK CLI globally
         run: npm install -g aws-cdk
 
+      # ⬇️ CAMBIO CLAVE: npm install en vez de npm ci
       - name: 📂 Install project dependencies
-        run: npm ci
+        run: npm install --legacy-peer-deps --no-audit --no-fund
 
       - name: 🧱 Install Python deps (Lambdas)
         run: |
@@ -49,7 +50,7 @@ jobs:
       - name: 🧪 Build frontend
         run: |
           cd user-interface
-          npm install
+          npm install --legacy-peer-deps --no-audit --no-fund
           npm run build
           cd ..
 
