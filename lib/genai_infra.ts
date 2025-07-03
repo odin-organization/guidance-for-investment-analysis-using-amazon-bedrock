@@ -65,25 +65,25 @@ export class GenAIInfraStack extends cdk.Stack {
       type: 'data',
       policy: JSON.stringify([
         {
-          Description: 'Allow all roles in this account to manage & query OSS collections',
+          Description: 'Allow account roles to manage & query OSS collections',
+          Principal: [ `arn:aws:iam::${cdk.Aws.ACCOUNT_ID}:root` ],
+
           Rules: [
             {
-              /* Colecciones */
               ResourceType: 'collection',
-              Resource: ['collection/*'],
-              Permission: ['aoss:*']          // o enum de *CollectionItems si quieres limitar
+              Resource: [ 'collection/*' ],
+              Permission: ['aoss:*']
             },
             {
-              /* Índices dentro de las colecciones */
               ResourceType: 'index',
-              Resource: ['index/*/*'],        // sintaxis obligatoria <collection>/<index>
-              Permission: ['aoss:*']          // o lista de ReadDocument, WriteDocument, etc.
+              Resource: [ 'index/*/*' ],   // todos los índices de todas las colecciones
+              Permission: ['aoss:*']
             }
-          ],
-          Principal: [`arn:aws:iam::${cdk.Aws.ACCOUNT_ID}:role/*`]
+          ]
         }
       ])
     });
+
 
     const investmentAnalystVecKB = new genai.bedrock.VectorKnowledgeBase(this,
       'InvestmentAnalystVecKB', {
