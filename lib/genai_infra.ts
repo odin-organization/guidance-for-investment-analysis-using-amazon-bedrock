@@ -11,6 +11,7 @@ import * as cr from "aws-cdk-lib/custom-resources";
 import { NagSuppressions } from "cdk-nag";
 import { Construct } from "constructs";
 import * as path from "node:path";
+import * as oss from 'aws-cdk-lib/aws-opensearchserverless';
 
 const lambdaArchitecture = lambda.Architecture.X86_64;
 
@@ -42,6 +43,58 @@ export class GenAIInfraStack extends cdk.Stack {
       destinationBucket: kbInvestmentResearchS3,
     });
 
+    /* 1️⃣  Encryption policy (AWS-owned KMS) – necesaria la primera vez */
+    new oss.CfnSecurityConfig(this, 'OssEncryptionDefault', {
+      name: 'default-aes',
+      type: 'encryption',
+      encryptionPolicy: JSON.stringify({
+        Rules: [
+          {
+            ResourceType: 'collection',
+            Resource: [ 'collection/*' ]           // todas las colecciones
+          }
+        ],
+        AWSOwnedKey: true                          // clave KMS administrada por AWS
+      })
+    });
+
+    /* 2️⃣  Data-access policy con los permisos que solicitaste */
+    new oss.CfnAccessPolicy(this, 'OssDataAccessDefault', {
+      name: 'default-access',
+      type: 'data',
+      policy: JSON.stringify([
+        {
+          Description: 'Allow all roles in this account to manage & query OSS collections',
+          Rules: [
+            {
+              ResourceType: 'collection',
+              Resource: [ 'collection/*' ],
+              Permission: [
+                // Colección
+                'aoss:CreateCollection',
+                'aoss:DeleteCollection',
+                'aoss:DescribeCollection',
+
+                // Ítems e índices
+                'aoss:CreateCollectionItems',
+                'aoss:DeleteCollectionItems',
+                'aoss:UpdateCollectionItems',
+                'aoss:DescribeCollectionItems',
+                'aoss:CreateIndex',
+                'aoss:DeleteIndex',
+                'aoss:UpdateIndex',
+                'aoss:DescribeIndex',
+                'aoss:ReadDocument',
+                'aoss:WriteDocument'
+              ]
+
+            }
+          ],
+          /* Puedes afinar el principal: un rol concreto, prefijo, etc. */
+          Principal: [ `arn:aws:iam::${cdk.Aws.ACCOUNT_ID}:role/*` ]
+        }
+      ])
+    });
     const investmentAnalystVecKB = new genai.bedrock.VectorKnowledgeBase(this,
       'InvestmentAnalystVecKB', {
       embeddingsModel: genai.bedrock.BedrockFoundationModel.TITAN_EMBED_TEXT_V2_1024,
